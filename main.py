@@ -104,6 +104,7 @@ async def deepcall(ws: WebSocket):
             # AUDIO MASUK
             # =========================
             if "bytes" in data:
+                print("🎧 RECEIVED AUDIO:", len(data["bytes"]))
                 audio_buffer.extend(data["bytes"])
 
                 if is_ai_speaking:
@@ -114,9 +115,11 @@ async def deepcall(ws: WebSocket):
             # CONTROL
             # =========================
             elif "text" in data:
+                print("📩 CONTROL MSG:", data["text"])
                 msg = json.loads(data["text"])
 
                 if msg.get("type") == "end-utterance":
+                    print("📦 BUFFER SIZE:", len(audio_buffer))
 
                     user_text = await speech_to_text(bytes(audio_buffer))
 
