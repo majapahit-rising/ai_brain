@@ -113,28 +113,32 @@ async def stream_gemini_sentences(text: str):
 # ======================================================
 
 async def process_and_send_audio(ws: WebSocket, text: str):
-    """
-    Menangani pengiriman teks ke UI dan pengiriman byte audio ke Speaker.
-    Gunakan ini untuk welcome message maupun respon Gemini.
-    """
     if not text.strip():
         return
 
-    # Kirim teks ke UI
     await ws.send_json({
         "type": "ai-text",
         "text": text
     })
 
-    # Dapatkan audio dari TTS
     audio_bytes = await text_to_speech(text)
 
-    # Kirim per chunk agar aliran audio stabil di client
+   
+    if audio_bytes[:4] == b'RIFF':
+        audio_bytes = audio_bytes[44:]
+
     chunk_size = 1024
+
     for i in range(0, len(audio_bytes), chunk_size):
-        await ws.send_bytes(audio_bytes[i:i + chunk_size])
-        # Sedikit delay untuk mencegah buffer overflow di client side
-        await asyncio.sleep(0.005)
+        chunk = audio_bytes[i:i + chunk_size]
+
+       
+        if len(chunk) % 2 != 0:
+            chunk = chunk[:-1]
+
+        if chunk:
+            await ws.send_bytes(chunk)
+            await asyncio.sleep(0.005)
 
 # ======================================================
 # WEBSOCKET REALTIME
