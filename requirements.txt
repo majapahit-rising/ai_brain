@@ -8,3 +8,5 @@ httpx
 aiofiles
 numpy
 webrtcvad
+aiomysql
+cryptography
